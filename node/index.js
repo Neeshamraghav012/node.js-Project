@@ -13,8 +13,8 @@ const port = process.env.PORT || 8000;
 
 app.get('/', (req, res) => {
 
-    res.send("<h1>Hello, World Express!<h1>");
-    //res.render('home')
+    //res.send("<h1>Hello, World Express!<h1>");
+    res.render('home')
 
 })
 
