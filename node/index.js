@@ -1,25 +1,43 @@
 // importing required modules
 const http = require("http");
 const express = require("express");
-var things = require("./things.js");
+const things = require("./things.js");
 const hbs = require('hbs');
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
+const models = require('./models.js');
+const bodyParser = require('body-parser')
+const session = require('express-session');
+
+const cookieParser = require('cookie-parser');
+
 
 app = express();
-const router = express.Router();
 
+app.use(cookieParser());
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+
+// parse application/json
+app.use(bodyParser.json())
+app.use(session({secret: "Shh, its a secret!"}));
 app.set('view engine', 'hbs')
 app.use(express.static('staticfiles'));
-app.use("/router", things);
+app.use("/router", things.router);
+app.use('/data', things.data);
 
-console.log(__dirname)
-const port = process.env.PORT || 8000;
+
 
 app.get('/', (req, res) => {
 
-    //res.send("<h1>Hello, World Express!<h1>");
-    res.render('home')
+    res.cookie("name", "Neesham");
+    res.render('home');
 
+    if (!req.session.name){
+
+      req.session.name = "Neesham";
+    }
+    console.log(req.session.name);
 })
 
 app.get('/about', (req, res) => {
@@ -28,42 +46,52 @@ app.get('/about', (req, res) => {
 
 })
 
+// Get data from the user
 app.get('/person', (req, res) => {
 
     res.render('person')
 })
 
 
-// Database utilities.
-mongoose.connect('mongodb://localhost/my_db');
+// Save the data
+app.post('/person', (req, res) => {
 
-var personShema = mongoose.Schema({name: String, age: Number, nationality: String});
+    //Get the parsed information
+    var personInfo = req.body; 
+    console.log(req.body);
 
-var person = mongoose.model("Person", personShema);
-
-app.post('/person', function(req, res){
-    var personInfo = req.body; //Get the parsed information
-    console.log(personInfo);
     if(!personInfo.name || !personInfo.age || !personInfo.nationality){
-       res.render('show_message', {
+       res.render('error', {
           message: "Sorry, you provided worng info", type: "error"});
     } else {
-       var newPerson = new Person({
+       var newPerson = new models.Person({
           name: personInfo.name,
           age: personInfo.age,
           nationality: personInfo.nationality
        });
-         
+    
        newPerson.save(function(err, Person){
           if(err)
-             res.render('show_message', {message: "Database error", type: "error"});
+             res.render('error', {message: "Database error", type: "error"});
           else
-             res.render('show_message', {
+             res.render('error', {
                 message: "New person added", type: "success", person: personInfo});
        });
     }
+
+
  });
 
+// Show the data
+app.get('/data', (req, res) => {
 
-app.listen(port, () => console.log(`The server is listning to port ${port}`))
+  models.Person.find(function(err, response){
 
+    res.json(response);
+
+  }); 
+
+})
+
+
+app.listen(process.env.PORT || 8000, () => console.log(`The server is listning to port 8000`))
