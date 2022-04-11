@@ -1,20 +1,22 @@
 
 const express = require("express");
 
-router = express.Router();
-data = express.Router();
+router1 = express.Router();
+// router2 = express.Router();
+// router3 = express.Router();
 
-router.get('/things/', function(req, res){
+router1.get('/get', function(req, res){
 
     res.send("Router in action!");
 })
 
-data.get('/data', (req, res) => {
+router1.post('/post', function(req, res){
 
-  res.send("Helo, node!");
-
- })
-
+	res.send("Post Router in action!");
+})
 
 
-module.exports = {"router": router, "data": data};
+
+
+
+module.exports = {"router": router1};

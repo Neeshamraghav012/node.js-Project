@@ -7,7 +7,6 @@ const mongoose = require('mongoose');
 const models = require('./models.js');
 const bodyParser = require('body-parser')
 const session = require('express-session');
-
 const cookieParser = require('cookie-parser');
 
 
@@ -23,22 +22,36 @@ app.use(bodyParser.json())
 app.use(session({secret: "Shh, its a secret!"}));
 app.set('view engine', 'hbs')
 app.use(express.static('staticfiles'));
+
 app.use("/router", things.router);
-app.use('/data', things.data);
 
+app.use((req, res, next) => {
 
+  console.log('Time:', Date.now())
+  next()
 
-app.get('/', (req, res) => {
+})
 
-    res.cookie("name", "Neesham");
-    res.render('home');
+app.get('/', (req, res, next) => {
+
+    // res.cookie("name", "Neesham");
 
     if (!req.session.name){
 
       req.session.name = "Neesham";
     }
+
     console.log(req.session.name);
-})
+
+    res.render('home');
+
+
+    next();
+
+}, (req, res, next) => {console.log("Request Type: ", req.method); next();},
+
+
+)
 
 app.get('/about', (req, res) => {
         
@@ -83,7 +96,7 @@ app.post('/person', (req, res) => {
  });
 
 // Show the data
-app.get('/data', (req, res) => {
+app.get('/show-data', (req, res) => {
 
   models.Person.find(function(err, response){
 
